@@ -181,16 +181,16 @@ class EventController extends Controller{
                 'description' => $description,
                 'ispublic' => $ispublic,
             ]);
+        }else{
+            $event->update([
+                'name' => $name,
+                'date' => $date,
+                'location' => $location,
+                'type' => $type,
+                'description' => $description,
+                'ispublic' => $ispublic,
+            ]);
         }
-
-        $event->update([
-            'name' => $name,
-            'date' => $date,
-            'location' => $location,
-            'type' => $type,
-            'description' => $description,
-            'ispublic' => $ispublic,
-        ]);
 
         $recent = ReadingModel::getSelectedUsers($id);
 
