@@ -1,0 +1,57 @@
+html, body {
+    background-color: #f0f0f0;
+    font-family: Candara;
+}
+#logout-button{
+    color: red;
+}
+.joined-badge{
+    color: #1c7430;
+}
+.event-card {
+    height: 100%;
+}
+.event-card img {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+}
+.event-card-title{
+    font-weight: bold;
+    font-size: 25px;
+}
+.event-card-badges{
+    font-style: italic;
+}
+.card-footer{
+    background-color: white;
+}
+.dashboard-btn{
+    font-weight: bold;
+}
+.signup-card {
+    height: 100%;
+}
+.signup-card img {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+    max-height: 500px;
+}
+.signup-card-title{
+    font-weight: bold;
+    font-size: 25px;
+}
+.login-card {
+    height: 100%;
+}
+.login-card img {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+    max-height: 500px;
+}
+.login-card-title{
+    font-weight: bold;
+    font-size: 25px;
+}
