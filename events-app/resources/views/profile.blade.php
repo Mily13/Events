@@ -1,8 +1,6 @@
 @extends('app')
 
-@section('title', 'SignUp')
-@section('css', 'css/style.css')
-@section('js', 'js/custom.js')
+@section('title', 'Profile')
 
 @section('content')
 
@@ -40,7 +38,7 @@
                         </td>
                         <td>
                             <div class="btn-group">
-                                <form action="{{ route('modify-event-form') }}" method="POST">
+                                <form action="{{ route('modify-event-form') }}" method="GET">
                                     @csrf
                                     <input type="hidden" name="event" value="{{ $event->id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-warning">Modify</button>

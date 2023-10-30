@@ -21,7 +21,7 @@ Route::get('/login', [UserController::class, 'loginPage'])->name('login');
 Route::get('/signup', [UserController::class, 'signupPage'])->name('signup');
 Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 Route::get('/add-event', [EventController::class, 'eventForm'])->name('add-event');
-Route::get('/event/image/{eventId}', [EventController::class, 'getImage'])->name('event-image');
+Route::get('/modify-event-form', [EventController::class, 'modifyForm'])->name('modify-event-form');
 Route::get('/filter', [EventController::class, 'getEventsFiltered'])->name('filter');
 Route::post('/insert-event', [EventController::class, 'insert'])->name('insert-event');
 Route::post('/process-login', [UserController::class, 'login'])->name('process-login');
@@ -29,7 +29,6 @@ Route::post('/process-signup', [UserController::class, 'signup'])->name('process
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 Route::post('/delete-join', [JoiningController::class, 'delete'])->name('delete-join');
 Route::post('/delete-event', [EventController::class, 'delete'])->name('delete-event');
-Route::post('/modify-event-form', [EventController::class, 'modifyForm'])->name('modify-event-form');
 Route::post('/update-event', [EventController::class, 'update'])->name('update-event');
 
 

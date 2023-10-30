@@ -1,17 +1,25 @@
 @extends('app')
 
 @section('title', 'Add Event')
-@section('css', 'css/style.css')
-@section('js', 'js/custom.js')
 
 @section('content')
+
+    @if ($errors->any())
+        <div class="alert alert-danger my-5">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <div class="container py-5 my-5">
         <div class="row justify-content-center">
             <div class="col-12 col-md-10">
                 <div class="card mb-3">
                     <div class="card-body">
-                        <p class="card-title text-center">Create a new Event</p>
+                        <p class="card-title text-center add-event-card-title">Create a new Event</p>
                         <form id="event-form" method="POST" action="{{ route('insert-event') }}" enctype="multipart/form-data" class="row">
                             @csrf
                             <div class="form-group col-12 col-md-6">
@@ -28,11 +36,11 @@
                             </div>
                             <div class="form-group col-12 col-md-8">
                                 <label class="formlabel" for="nameinput">Name:</label>
-                                <input type="text" class="form-control" id="nameinput" name="name" required>
+                                <input type="text" class="form-control" id="nameinput" name="name" value="{{ old('name') }}" required>
                             </div>
                             <div class="form-group col-12 col-md-5">
                                 <label class="formlabel" for="locationinput">Location:</label>
-                                <input type="text" class="form-control" id="locationinput" name="location" required>
+                                <input type="text" class="form-control" id="locationinput" name="location" value="{{ old('location') }}" required>
                             </div>
                             <div class="form-group col-12 col-md-4">
                                 <label class="formlabel" for="typeinput">Type of Event:</label>
@@ -51,7 +59,7 @@
                             </div>
                             <div class="form-group col-12 col-md-3">
                                 <label class="formlabel" for="dateinput">Date:</label>
-                                <input type="date" class="form-control" id="dateinput" name="date" required>
+                                <input type="date" class="form-control" id="dateinput" name="date" value="{{ old('date') }}" required>
                             </div>
                             <div class="form-group col-12 col-md-5">
                                 <label class="formlabel" for="imageinput">Image:</label>
@@ -60,7 +68,7 @@
                             </div>
                             <div class="form-group col-12 col-md-12">
                                 <label class="formlabel" for="descriptioninput">Description:</label>
-                                <textarea class="form-control" id="descriptioninput" name="description" rows="3" maxlength="400" required></textarea>
+                                <textarea class="form-control" id="descriptioninput" name="description" rows="3" maxlength="400" required>{{ old('description') }}</textarea>
                             </div>
                             <div class="form-group col-12 col-md-12 mt-3">
                                 <button type="submit" class="btn btn-outline-success me-2">Create Event</button>

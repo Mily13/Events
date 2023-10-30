@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JoiningModel;
+use App\Models\Joining;
 use Illuminate\Http\Request;
 
 class JoiningApiController extends Controller{
@@ -14,12 +14,12 @@ class JoiningApiController extends Controller{
             return response()->json(['redirect' => route('login')]);
         }
 
-        $joined = JoiningModel::isJoined($user, $event);
+        $joined = Joining::isJoined($user, $event);
 
         if ($joined){
             return response()->json(['joined' => true]);
         }else{
-            JoiningModel::create([
+            Joining::create([
                 'event' => $event,
                 'user' => $user,
             ]);

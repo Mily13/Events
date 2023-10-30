@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EventModel;
-use App\Models\ReadingModel;
-use App\Models\UserModel;
+use App\Http\Requests\EventRequest;
+use App\Models\Event;
+use App\Models\Joining;
+use App\Models\Reading;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,16 +16,22 @@ class EventController extends Controller{
             $user = Auth::user();
             $user_id = $user->id;
 
-            $personalEventsArray = ReadingModel::getEventIDs($user_id);
+            $ownEventsArray = Event::getOwnEventIDs($user_id);
+            $personalEventsArray = Reading::getEventIDs($user_id);
+
+            $joinedEventsArray = Joining::getEventsJoinedByUser($user_id);
         }else{
+            $ownEventsArray = [];
             $personalEventsArray = [];
+            $joinedEventsArray = [];
             $user_id = 0;
         }
 
-        $publicEventsArray = EventModel::getPublicEventIDs();
-        $events = EventModel::getEvents($publicEventsArray, $personalEventsArray);
+        $publicEventsArray = Event::getPublicEventIDs();
+        $events = Event::getEvents($publicEventsArray, $personalEventsArray, $ownEventsArray);
 
-        return view('dashboard', compact('events', 'user_id'));
+
+        return view('dashboard', compact('events', 'user_id', 'joinedEventsArray', 'ownEventsArray'));
     }
 
 
@@ -35,8 +43,8 @@ class EventController extends Controller{
         ]);
 
         $name = $request->input('name');
-        $datefrom = $request->input('datefrom');
-        $dateto = $request->input('dateto');
+        $dateFrom = $request->input('datefrom');
+        $dateTo = $request->input('dateto');
         $location = $request->input('location');
         $type = $request->input('type');
 
@@ -44,22 +52,27 @@ class EventController extends Controller{
             $user = Auth::user();
             $user_id = $user->id;
 
-            $personalEventsArray = ReadingModel::getEventIDs($user_id);
+            $ownEventsArray = Event::getOwnEventIDs($user_id);
+            $personalEventsArray = Reading::getEventIDs($user_id);
+
+            $joinedEventsArray = Joining::getEventsJoinedByUser($user_id);
         }else{
+            $ownEventsArray = [];
             $personalEventsArray = [];
+            $joinedEventsArray = [];
             $user_id = 0;
         }
 
-        $publicEventsArray = EventModel::getPublicEventIDs();
-        $events = EventModel::getFilteredEvents($publicEventsArray, $personalEventsArray, $name, $datefrom, $dateto, $location, $type);
+        $publicEventsArray = Event::getPublicEventIDs();
+        $events = Event::getFilteredEvents($publicEventsArray, $personalEventsArray, $ownEventsArray, $name, $dateFrom, $dateTo, $location, $type);
 
-        return view('dashboard', compact('events', 'user_id'));
+        return view('dashboard', compact('events', 'user_id', 'joinedEventsArray', 'ownEventsArray'));
     }
 
 
     public function eventForm(){
         if (Auth::check()) {
-            $users = UserModel::getAllOtherUser();
+            $users = User::getAllOtherUser();
             return view('addEvent', compact('users'));
         }
         return back()->withErrors([
@@ -73,36 +86,27 @@ class EventController extends Controller{
             'event' => 'required',
         ]);
 
-        $users = UserModel::getAllOtherUser();
+        $users = User::getAllOtherUser();
         $event_id = $request->input('event');
-        $event = EventModel::where('id', $event_id)->first();
-        $selectedUsers = ReadingModel::getSelectedUsers($event_id);
+        $event = Event::where('id', $event_id)->first();
+        $selectedUsers = Reading::getSelectedUsers($event_id);
 
         return view('modifyEvent', compact('event', 'users', 'selectedUsers'));
     }
 
 
-    public function insert(Request $request){
-        $request->validate([
-            'name' => 'required|max:99',
-            'date' => 'required',
-            'location' => 'required|max:99',
-            'type' => 'required|max:99',
-            'description' => 'required|max:400',
-            'image' => 'image|max:4096|dimensions:min_width=50,min_height=50,max_width=4000,max_height=4000'
-        ]);
-
+    public function insert(EventRequest $request){
         $name =  $request->input('name');
         $date = $request->input('date');
         $location =  $request->input('location');
         $type =  $request->input('type');
         $description = $request->input('description');
-        $ispublic = $request->input('ispublic');
+        $isPublic = $request->input('ispublic');
 
-        if ($ispublic == 'private'){
-            $ispublic = 0;
+        if ($isPublic == 'private'){
+            $isPublic = 0;
         }else{
-            $ispublic = 1;
+            $isPublic = 1;
         }
 
         if (Auth::check()) {
@@ -110,29 +114,38 @@ class EventController extends Controller{
             $creator = $user->id;
         }
 
-        $imageData = null;
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $image = $request->file('image');
-            $imageData = file_get_contents($image);
+
+        if ($request->hasFile('image')) {
+            if ($request->file('image')->isValid()) {
+                $image = $request->file('image');
+
+                $imagePath = $image->store('images', 'public');
+            } else {
+                return back()->withErrors([
+                    'error' => 'Error uploading image. Please check the file format and try again!',
+                ]);
+            }
+        }else {
+            $imagePath = null;
         }
 
-        EventModel::create([
+        Event::create([
             'name' => $name,
             'date' => $date,
             'location' => $location,
-            'image' => $imageData,
+            'image_path' => $imagePath,
             'type' => $type,
             'description' => $description,
             'creator' => $creator,
-            'ispublic' => $ispublic,
+            'ispublic' => $isPublic,
         ]);
 
-        $event_id = EventModel::getEventIdByAttributes($name, $location, $date, $description, $type);
+        $event_id = Event::getEventIdByAttributes($name, $location, $date, $description, $type);
 
-        if ($ispublic == 0){
+        if ($isPublic == 0){
             $users = $request->input('users', []);
             foreach ($users as $user) {
-                ReadingModel::create([
+                Reading::create([
                     'user' => $user,
                     'event' => $event_id,
                 ]);
@@ -143,63 +156,60 @@ class EventController extends Controller{
     }
 
 
-    public function update(Request $request){
-        $request->validate([
-            'name' => 'required|max:99',
-            'date' => 'required',
-            'location' => 'required|max:99',
-            'type' => 'required|max:99',
-            'description' => 'required|max:400',
-            'image' => 'image|max:4096|dimensions:min_width=50,min_height=50,max_width=4000,max_height=4000'
-        ]);
-
+    public function update(EventRequest $request){
         $id = $request->input('id');
         $name =  $request->input('name');
         $date = $request->input('date');
         $location =  $request->input('location');
         $type =  $request->input('type');
         $description = $request->input('description');
-        $ispublic = $request->input('ispublic');
-        $event = EventModel::find($id);
+        $isPublic = $request->input('ispublic');
+        $event = Event::find($id);
 
-        if ($ispublic == 'private'){
-            $ispublic = 0;
+        if ($isPublic == 'private'){
+            $isPublic = 0;
         }else{
-            $ispublic = 1;
+            $isPublic = 1;
         }
 
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $image = $request->file('image');
-            $imageData = file_get_contents($image);
+        if ($request->hasFile('image')) {
+            if ($request->file('image')->isValid()) {
+                $image = $request->file('image');
+                $imagePath = $image->store('images', 'public');
 
+                $event->update([
+                    'name' => $name,
+                    'date' => $date,
+                    'location' => $location,
+                    'image_path' => $imagePath,
+                    'type' => $type,
+                    'description' => $description,
+                    'ispublic' => $isPublic,
+                ]);
+            } else {
+                return back()->withErrors([
+                    'error' => 'Error uploading image. Please check the file format and try again!',
+                ]);
+            }
+        }else {
             $event->update([
                 'name' => $name,
                 'date' => $date,
                 'location' => $location,
-                'image' => $imageData,
                 'type' => $type,
                 'description' => $description,
-                'ispublic' => $ispublic,
-            ]);
-        }else{
-            $event->update([
-                'name' => $name,
-                'date' => $date,
-                'location' => $location,
-                'type' => $type,
-                'description' => $description,
-                'ispublic' => $ispublic,
+                'ispublic' => $isPublic,
             ]);
         }
 
-        $recent = ReadingModel::getSelectedUsers($id);
+        $recent = Reading::getSelectedUsers($id);
 
-        if ($ispublic == 0){
+        if ($isPublic == 0){
             $users = $request->input('users', []);
 
             foreach ($users as $user) {
                 if (!in_array($user, $recent)) {
-                    ReadingModel::create([
+                    Reading::create([
                         'user' => $user,
                         'event' => $id,
                     ]);
@@ -208,7 +218,7 @@ class EventController extends Controller{
 
             foreach ($recent as $rec) {
                 if (!in_array($rec, $users)) {
-                    ReadingModel::where('user', $rec)->where('event', $id)->delete();
+                    Reading::where('user', $rec)->where('event', $id)->delete();
                 }
             }
         }
@@ -225,7 +235,7 @@ class EventController extends Controller{
 
             $event = $request->input('event');
 
-            EventModel::where('id', $event)->delete();
+            Event::where('id', $event)->delete();
 
             return redirect()->route('profile');
         }else{
@@ -233,18 +243,4 @@ class EventController extends Controller{
         }
     }
 
-    public function getImage($eventId){
-        $event = EventModel::find($eventId);
-
-        if (!$event || !$event->image) {
-            $defaultImagePath = public_path('default.jpg');
-            $defaultImage = file_get_contents($defaultImagePath);
-
-            return response($defaultImage)
-                ->header('Content-Type', 'image/jpeg');
-        }
-
-        return response($event->image)
-            ->header('Content-Type', 'image/jpeg');
-    }
 }

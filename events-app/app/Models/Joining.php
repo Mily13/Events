@@ -4,10 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class JoiningModel extends Model{
+class Joining extends Model{
     protected $table = 'joining';
-    protected $primaryKey = 'id';
-    protected $fillable = ['user', 'event'];
+    protected $guarded = ['id'];
     public $timestamps = false;
 
 
@@ -18,5 +17,10 @@ class JoiningModel extends Model{
 
     public static function isJoined($user, $event){
         return self::where('user', $user)->where('event', $event)->exists();
+    }
+
+
+    public static function getEventsJoinedByUser($user){
+        return self::where('user', $user)->pluck('event')->toArray();
     }
 }

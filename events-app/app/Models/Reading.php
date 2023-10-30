@@ -4,10 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ReadingModel extends Model{
+class Reading extends Model{
     protected $table = 'reading';
-    protected $primaryKey = 'id';
-    protected $fillable = ['user', 'event'];
+    protected $guarded = ['id'];
     public $timestamps = false;
 
 

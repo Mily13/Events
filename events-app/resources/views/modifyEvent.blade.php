@@ -1,8 +1,6 @@
 @extends('app')
 
 @section('title', 'Modify Event')
-@section('css', 'css/style.css')
-@section('js', 'js/custom.js')
 
 @section('content')
 

@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class EventModel extends Model{
+class Event extends Model{
     protected $table = 'events';
-    protected $primaryKey = 'id';
-    protected $fillable = ['name', 'date', 'location', 'image', 'type', 'description', 'creator', 'ispublic'];
+    protected $guarded = ['id'];
     public $timestamps = false;
+
+    public function creator(): HasOne{
+        return $this->hasOne(User::class, 'creator');
+    }
 
 
     public static function getPublicEventIDs(){
@@ -16,12 +20,19 @@ class EventModel extends Model{
     }
 
 
-    public static function getEvents($public, $personal){
-        return self::whereIn('id', $public)->orWhereIn('id', $personal)->get();
+    public static function getOwnEventIDs($creator){
+        return self::where('creator', $creator)->pluck('id')->toArray();
     }
 
 
-    public static function getFilteredEvents($public, $personal, $name, $datefrom, $dateto, $location, $type){
+    public static function getEvents($public, $personal, $own){
+        return self::whereIn('id', $public)
+                    ->orWhereIn('id', $personal)
+                    ->orWhereIn('id', $own)->get();
+    }
+
+
+    public static function getFilteredEvents($public, $personal, $own, $name, $dateFrom, $dateTo, $location, $type){
         $query = self::query();
 
         if ($name) {
@@ -31,12 +42,12 @@ class EventModel extends Model{
             });
         }
 
-        if ($datefrom) {
-            $query->where('date', '>=', $datefrom);
+        if ($dateFrom) {
+            $query->where('date', '>=', $dateFrom);
         }
 
-        if ($dateto) {
-            $query->where('date', '<=', $dateto);
+        if ($dateTo) {
+            $query->where('date', '<=', $dateTo);
         }
 
         if ($location) {
@@ -47,7 +58,11 @@ class EventModel extends Model{
             $query->where('type', $type);
         }
 
-        $events = $query->whereIn('id', $public)->orWhereIn('id', $personal)->get();
+        $events = $query->where(function ($subquery) use ($public, $personal, $own) {
+            $subquery->whereIn('id', $public)
+                    ->orWhereIn('id', $personal)
+                    ->orWhereIn('id', $own);
+        })->get();
 
         return $events;
     }

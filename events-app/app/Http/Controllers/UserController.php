@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EventModel;
-use App\Models\JoiningModel;
-use App\Models\UserModel;
+use App\Http\Requests\SignupRequest;
+use App\Models\Event;
+use App\Models\Joining;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller{
-    public static function loginPage(){
+    public function loginPage(){
         return view('login');
     }
 
 
-    public static function signupPage(){
+    public function signupPage(){
         return view('signup');
     }
 
 
-    public static function login(Request $request){
+    public function login(Request $request){
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -38,22 +39,14 @@ class UserController extends Controller{
     }
 
 
-    public static function signup(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:99',
-            'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-            'phone' => 'required|string',
-            'birthday' => 'required|date',
-        ]);
-
+    public function signup(SignupRequest $request){
         $name = $request->input('name');
         $email = $request->input('email');
         $password = $request->input('password');
         $phone = $request->input('phone');
         $birthday = $request->input('birthday');
 
-        $user = UserModel::create([
+        $user = User::create([
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
@@ -82,9 +75,9 @@ class UserController extends Controller{
             $user = Auth::user();
             $user_id = $user->id;
 
-            $events = EventModel::getUsersEvents($user_id);
-            $event_id_array = JoiningModel::getEventIds($user_id);
-            $joined_events = EventModel::getJoinedEvents($event_id_array);
+            $events = Event::getUsersEvents($user_id);
+            $event_id_array = Joining::getEventIds($user_id);
+            $joined_events = Event::getJoinedEvents($event_id_array);
 
             return view('profile', compact('user', 'events', 'joined_events'));
         }else{

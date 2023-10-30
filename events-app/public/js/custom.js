@@ -1,5 +1,6 @@
 $(document).ready(function() {
     $('.join-button').click(function() {
+        let joinButton = $(this);
         let event = $(this).data('event');
         let user = $(this).data('user');
         let joinRoute = $(this).data('join-route');
@@ -14,6 +15,8 @@ $(document).ready(function() {
                     alert('You are already joined!');
                 } else {
                     alert('You joined successfully!');
+                    joinButton.hide();
+                    joinButton.siblings('.joined-badge').html('<p><i class="bi bi-patch-check-fill me-2"></i> Joined</p>');
                 }
             },
         });
