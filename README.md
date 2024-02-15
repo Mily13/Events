@@ -1,5 +1,5 @@
-# Mozaik-Events
-mozaik events app
+# Events
+events app
 
 A fejlesztés alatt XAMPP (Apache, MySQL) volt használva.
 A weboldal adatbázisként egy MySQL adatbázis lett létrehozva PhpMyAdmin-ban, aminek kiexportált változata megtalálható a projekt root-ban 'events.sql' néven.
@@ -24,7 +24,7 @@ Futtatási követelmények:
 
 Repo klónozása és beüzemelés fejlesztői környezet termináljából:
 ```
-git clone https://github.com/Mily13/Mozaik-Verseny.git
+git clone https://github.com/Mily13/Events.git
 cd Events
 cd events-app
 composer install
